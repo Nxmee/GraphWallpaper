@@ -41,16 +41,25 @@
       //sorts the array by closest distance to 1st node
       //pointArray = pointArray.sort(function(a,b){return pointArray[0].getDistance(a) - pointArray[0].getDistance(b)});
 
-      //generates every line that doesn't intersect a previous line
-      for (var i = 0; i < pointArray.length - 1; i++) {
-        for (var j = i + 1; j < pointArray.length; j++) {
-          if (!wouldIntersect(pointArray[i], pointArray[j]) && i != j) {
-            lines.push([i, j]);
-          };
-        };
-      };
-      console.log(lines);
+      var tempLines = [];
+      //add all possible lines
+      for(var i=0; i<pointArray.length; i++) {
+        for(var j=i; j<pointArray.length; j++){
+          if (i != j) {tempLines.push([i,j]);}
 
+        }
+      }
+      console.log(tempLines);
+      tempLines = shuffle(tempLines);
+      console.log(tempLines);
+
+      lines = [tempLines[0]];
+
+      for(var i=1; i<tempLines.length; i++){
+        if (!wouldIntersect(pointArray[tempLines[i][0]], pointArray[tempLines[i][1]])) {
+        lines.push(tempLines[i]);
+        }
+      }
 
       var lineCount = [];
       for (x in pointArray) {
@@ -60,7 +69,6 @@
       //render the paths, except the more paths a node has the less chance of more
       var paths = [];
       for (var i = 0; i < lines.length; i++) {
-        if (lineCount[lines[i][0]] < 2 || lineCount[lines[i][1]] < 2 || Math.random() <0.5+ (0.5 / ((lineCount[lines[i][0]] + lineCount[lines[i][1]]) / 3))) {
           newLine = new Path.Line(pointArray[lines[i][0]], pointArray[lines[i][1]])
           newLine.style = {
             strokeColor: 'black',
@@ -70,12 +78,12 @@
           paths.push(newLine);
           lineCount[lines[i][0]]++;
           lineCount[lines[i][1]]++;
-        }
+
       }
 
       //off-screen nodes
       //sideID = which side of the screen it goes off
-
+      var sidePoints=[];
       var sideID = 0;
       for (var i = 0; i < edgeLines; i++) {
         var coord;
@@ -87,15 +95,16 @@
         }
 
         var sidePoint;
-        if (sideID == 0) {
-          sidePoint = new Point(coord, 0);
-        } else if (sideID == 1) {
-          sidePoint = new Point(0, coord);
-        } else if (sideID == 2) {
-          sidePoint = new Point(coord, canvas.height);
-        } else {
-          sidePoint = new Point(canvas.width, coord);
-        }
+          if (sideID == 0) {
+            sidePoint = new Point(coord, 0);
+          } else if (sideID == 1) {
+            sidePoint = new Point(0, coord);
+          } else if (sideID == 2) {
+            sidePoint = new Point(coord, canvas.height);
+          } else {
+            sidePoint = new Point(canvas.width, coord);
+          }
+          sidePoints.push(sidePoint);
         var connection = pointArray.filter(function(a) {
           return !wouldIntersect(sidePoint, a);
         }).sort(function(a, b) {
@@ -156,5 +165,25 @@
     intersect = function(p1, p2, q1, q2) {
       return orient(p1, q1, q2) != orient(p2, q1, q2) && orient(p1, p2, q1) != orient(p1, p2, q2);
     }
+
+    function shuffle(array) {
+        var currentIndex = array.length, temporaryValue, randomIndex;
+
+        // While there remain elements to shuffle...
+        while (0 !== currentIndex) {
+
+          // Pick a remaining element...
+          randomIndex = Math.floor(Math.random() * currentIndex);
+          currentIndex -= 1;
+
+          // And swap it with the current element.
+          temporaryValue = array[currentIndex];
+          array[currentIndex] = array[randomIndex];
+          array[randomIndex] = temporaryValue;
+        }
+
+        return array;
+    }
+
 
     drawPattern();
