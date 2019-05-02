@@ -9,6 +9,7 @@
     var lineWidth = 10;
     var circleRad = 10;
     var pointDist = 30;
+    var maxSideLines = 2;
     var text = true;
     ///////////////////////////////////////////////////////////////////////////
 
@@ -40,14 +41,6 @@
       //sorts the array by closest distance to 1st node
       //pointArray = pointArray.sort(function(a,b){return pointArray[0].getDistance(a) - pointArray[0].getDistance(b)});
 
-      //renders the pointArray as circles
-      var circles = pointArray.map(function(a) {
-        var newCirc = new Path.Circle(a, circleRad);
-        newCirc.strokeColor = 'black';
-        newCirc.fillColor = new Color(0, 0, 0)
-        return newCirc;
-      });
-
       //generates every line that doesn't intersect a previous line
       for (var i = 0; i < pointArray.length - 1; i++) {
         for (var j = i + 1; j < pointArray.length; j++) {
@@ -60,7 +53,7 @@
 
 
       var lineCount = [];
-      for (x in lines) {
+      for (x in pointArray) {
         lineCount.push(0);
       }
 
@@ -82,6 +75,7 @@
 
       //off-screen nodes
       //sideID = which side of the screen it goes off
+
       var sideID = 0;
       for (var i = 0; i < edgeLines; i++) {
         var coord;
@@ -102,13 +96,12 @@
         } else {
           sidePoint = new Point(canvas.width, coord);
         }
-        connection = pointArray.filter(function(a) {
+        var connection = pointArray.filter(function(a) {
           return !wouldIntersect(sidePoint, a);
         }).sort(function(a, b) {
-          return sidePoint.getDistance(a) - sidePoint.getDistance(b)
-        })[0]
-
-        newLine = new Path.Line(sidePoint, connection)
+          return sidePoint.getDistance(a) - sidePoint.getDistance(b);
+        })[0];
+        newLine = new Path.Line(sidePoint, connection);
         newLine.style = {
           strokeColor: 'black',
           strokeWidth: lineWidth,
@@ -122,6 +115,14 @@
         }
 
       }
+
+      //renders the pointArray as circles
+      var circles = pointArray.map(function(a) {
+        var newCirc = new Path.Circle(a, circleRad);
+        newCirc.strokeColor = 'black';
+        newCirc.fillColor = new Color(0, 0, 0)
+        return newCirc;
+      });
 
       //node ID on nodes
       if (text) {
