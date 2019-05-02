@@ -8,6 +8,7 @@
     var maxPoints = 10;
     var lineWidth = 10;
     var circleRad = 10;
+    var lineDegrees = 10;
     var pointDist = 30;
     var maxSideLines = 2;
     var text = true;
@@ -54,19 +55,23 @@
       console.log(tempLines);
 
       lines = [tempLines[0]];
-
-      for(var i=1; i<tempLines.length; i++){
-        if (!wouldIntersect(pointArray[tempLines[i][0]], pointArray[tempLines[i][1]])) {
-        lines.push(tempLines[i]);
+      var stillAdding = false;
+      do {
+        stillAdding = false;
+        for(var i=1; i<tempLines.length; i++){
+          if (!wouldIntersect(pointArray[tempLines[i][0]], pointArray[tempLines[i][1]])) {
+            stillAdding = true;
+            console.log(tempLines[i], "yes");
+            lines.push(tempLines[i]);
+            tempLines.splice(i,1);
+          }else{
+            console.log(tempLines[i], "no");
+          }
         }
-      }
+      } while (stillAdding);
 
-      var lineCount = [];
-      for (x in pointArray) {
-        lineCount.push(0);
-      }
 
-      //render the paths, except the more paths a node has the less chance of more
+      //render the paths
       var paths = [];
       for (var i = 0; i < lines.length; i++) {
           newLine = new Path.Line(pointArray[lines[i][0]], pointArray[lines[i][1]])
@@ -76,11 +81,9 @@
             strokeCap: 'round'
           };
           paths.push(newLine);
-          lineCount[lines[i][0]]++;
-          lineCount[lines[i][1]]++;
-
       }
 
+      /*
       //off-screen nodes
       //sideID = which side of the screen it goes off
       var sidePoints=[];
@@ -125,6 +128,7 @@
 
       }
 
+      */
       //renders the pointArray as circles
       var circles = pointArray.map(function(a) {
         var newCirc = new Path.Circle(a, circleRad);
@@ -156,8 +160,23 @@
         return !p.equals(pointArray[a[1]]);
       }).some(function(a) {
         return intersect(p, q, pointArray[a[0]], pointArray[a[1]]);
-      });
+      }) || lines.filter(function(a) {
+        return p.equals(pointArray[a[1]]);
+      }).some(function(a) {
+          find_angle(q,pointArray[a[0]], p) < (lineDegrees/2 * Math.PI);
+      })
     }
+
+
+    find_angle = function(p0,p1,c) {
+    var p0c = Math.sqrt(Math.pow(c.x-p0.x,2)+
+                        Math.pow(c.y-p0.y,2)); // p0->c (b)
+    var p1c = Math.sqrt(Math.pow(c.x-p1.x,2)+
+                        Math.pow(c.y-p1.y,2)); // p1->c (a)
+    var p0p1 = Math.sqrt(Math.pow(p1.x-p0.x,2)+
+                         Math.pow(p1.y-p0.y,2)); // p0->p1 (c)
+    return Math.acos((p1c*p1c+p0c*p0c-p0p1*p0p1)/(2*p1c*p0c));
+}
 
     orient = function(p, q, r) {
       return (r.y - p.y) * (q.x - p.x) > (q.y - p.y) * (r.x - p.x);
